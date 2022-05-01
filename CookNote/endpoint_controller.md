@@ -34,7 +34,7 @@
 |コメントを削除する|DELETE|comments/:id|comments#destroy|
 |お気に入りを作成する|POST|likes|likes#create|
 |お気に入りを削除する|DELETE|likes/:id|likes#destroy|
-|ストックの作成画面を表示する|GET|stocks/new|stocks#new|
+<!-- |ストックの作成画面を表示する|GET|stocks/new|stocks#new|
 |ストックを作成する|POST|stocks|stocks#create|
 |ストックの更新画面を表示する|GET|stocks/:id/edit|stocks#edit|
 |ストックを更新する|PUT,PATCH|stocks|stocks#update|
@@ -50,9 +50,6 @@
 |ストックカテゴリー一覧を表示する|GET|stock_categories/:id|stock_categories#index|
 |タグの作成画面を表示する|GET|tags/new|tags#new|
 |タグを作成する|POST|tags|tags#create|
-|タグの更新画面を表示する|GET|tags/:id/edit|tags#edit|
-|タグを更新する|PUT,PATCH|tags|tags#update|
-|タグを削除する|DELETE|tags/:id|tags#destroy|
 |タグを表示する|GET|tags/:id|tags#show|
 |タグ一覧を表示する|GET|tags/:id|tags#index|
 |タグカテゴリーの作成画面を表示する|GET|tag_categories/new|tag_categories#new|
@@ -68,6 +65,6 @@
 |通知を既読にする|PUT,PATCH|notifications/read|notifications#read|
 |通知の一覧を取得する|GET|mypage/notifications|mypage/notifications#index|
 |通知設定の編集画面を表示する|GET|mypage/notification_setting/edit|mypage/notifications#edit|
-|通知設定を更新する|PUT,PATCH|mypage/notification_setting|mypage/notifications#update|
+|通知設定を更新する|PUT,PATCH|mypage/notification_setting|mypage/notifications#update| -->
 
 
