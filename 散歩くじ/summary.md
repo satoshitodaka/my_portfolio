@@ -73,3 +73,63 @@ https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3
 ### 決めていないこと
 - 寄り道スポットの情報の管理について
   - walking_planのカラム`neaby_location_infos`に持たせるのか、従属するモデルを作成して情報を保存するか。
+
+### ER図の再作成（Mermaid記法）
+```mermaid
+erDiagram
+
+user ||--o{ walking_plan: ""
+user ||--o{ action: ""
+user ||--o{ notification: ""
+walking_plan ||--o{ walking_plan_action: ""
+action ||--o{ walking_plan_action: ""
+action ||--o{ notification: ""
+
+user {
+    username string
+    email string
+    encrypted_password string
+    admin boolean
+    created_at datetime
+    updated_at datetime
+}
+
+walking_plan {
+    start_point_name string
+    start_point_address string
+    start_point_latitude float
+    start_point_longitude float
+    distination_type string
+    distination_name string
+    distination_address string
+    distination_latitude float
+    distination_longitude float
+    neaby_location_infos string
+    created_at datetime
+    updated_at datetime
+}
+
+action {
+  action_type string
+  user_id bigint
+  content text
+  released boolean
+  created_at datetime
+  updated_at datetime
+}
+
+walking_plan_action {
+  walking_plan_id bigint
+  action_id bigint
+  created_at datetime
+  updated_at datetime
+}
+
+notification {
+  notification_type string
+  user_id bigint
+  read boolean
+  created_at datetime
+  updated_at datetime
+}
+```
