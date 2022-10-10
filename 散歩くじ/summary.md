@@ -24,21 +24,21 @@
 ### 方向性
 - アプリのコンテンツがルーレット系であるため、アプリを診断系ツールと位置づけて、アプリ内での履歴閲覧や他ユーザーとの共有機能は最小限（または無し）で良いのではないかと思っています。
 ### 未ログインでできること
-- 行先のタイプを選択し、出発地を入力・送信すると、以下のプランが作成される。
+- 行先のタイプを選択し、出発地を入力・送信すると、以下のくじが作成される。
   - 行先（キーワードに応じた近場のスポット）  
   - アクション（行先でチャレンジすること）
     - 予め用意したアクションからランダムで選択されるようにする。自撮りする、おすすめグルメを食べる、など。 
-  - 作成したプランはTwitterなどSNSでシェアできる。
+  - 作成したくじはTwitterなどSNSでシェアできる。
 - 行先の近場のスポットを併せて提示し、寄り道を勧める。
 
 ### ログイン後にできること
-- 作成したプランをユーザーに紐付けて保存できる。
+- 作成したくじをユーザーに紐付けて保存できる。
 - 考案したアクションを作成（提案）できる。
   - 開発元の審査が必要という仕様にした方が良さそう。
 
 ### その他
 #### 管理ユーザーの機能について
-- リソースの管理権限（ユーザー、プラン、アクション）
+- リソースの管理権限（ユーザー、くじ、アクション）
   - ただし、診断系ツールであるため、実際の運用でCRUD機能を使うことはほとんどなさそう。
 - ユーザーから提案されたアクションの内容を確認し、公開できる。
 #### 通知機能
@@ -64,25 +64,18 @@
   - 少し勇気を必要とするミッション（行先で人と交流する、など）
   - ちょっとオカルトっぽいミッション、など。
 
-### ER図
-[![Image from Gyazo](https://i.gyazo.com/bc8e0ac46fd7467ba6b5fba3330a4334.png)](https://gyazo.com/bc8e0ac46fd7467ba6b5fba3330a4334)
-
 ### Figma
 https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3%81%8F%E3%81%98%EF%BC%88%E4%BB%AE%E7%A7%B0%EF%BC%89?node-id=0%3A1
-
-### 決めていないこと
-- 寄り道スポットの情報の管理について
-  - walking_planのカラム`neaby_location_infos`に持たせるのか、従属するモデルを作成して情報を保存するか。
 
 ### ER図の再作成（Mermaid記法）
 ```mermaid
 erDiagram
 
-user ||--o{ walking_plan: ""
+user ||--o{ lot: ""
 user ||--o{ action: ""
 user ||--o{ notification: ""
-walking_plan ||--o{ walking_plan_action: ""
-action ||--o{ walking_plan_action: ""
+lot ||--|| lot_action: ""
+action ||--o{ lot_action: ""
 action ||--o{ notification: ""
 
 user {
@@ -94,7 +87,7 @@ user {
     updated_at datetime
 }
 
-walking_plan {
+lot {
     start_point_name string
     start_point_address string
     start_point_latitude float
@@ -118,8 +111,8 @@ action {
   updated_at datetime
 }
 
-walking_plan_action {
-  walking_plan_id bigint
+lot_action {
+  lot_id bigint
   action_id bigint
   created_at datetime
   updated_at datetime
@@ -133,3 +126,49 @@ notification {
   updated_at datetime
 }
 ```
+### エンドポイントとコントローラー
+| やりたいこと | HTTPメソッド | エンドポイント | コントローラ#アクション | 
+|:-----------|:------------:|:------------:|:------------:|
+| ログイン画面を表示 | GET | /login | user_sessions#new |
+| ログイン | POST | /login | user_sessions#create |
+| ログアウト | DELETE | /logout | user_sessions#destroy |
+| くじ作成画面を表示 | GET | /lots/new | lots#new |
+| くじを作成 | POST | /lots | lots#create |
+| くじの詳細を表示 | GET | /lots/:id | lots#show |
+| ユーザー登録画面を表示 | GET | /users/new |	users#new |
+| ユーザー登録 | POST | /users | users#create |
+| ユーザー情報の削除 | DELETE | /users/:id | users#destroy |
+| アクション作成画面を表示 | GET | /actions/new | actions#new |
+| アクションを作成 | POST | /actions | actions#create |
+| マイページを表示 | GET | /mypage | /mypage/account#show |
+| マイページの編集画面を表示 | GET | /mypage/account/edit | mypage/account#edit |
+| マイページを更新 | PUT/PATCH | /mypage/account | mypage/account#update |
+| アクションの詳細を表示 | GET | /mypage/actions/:id | mypage/actions#show |
+| アクションの編集画面を表示 | GET | /mypage/actions/:id | mypage/actions#edit |
+| アクションを更新 | GET | /mypage/actions/:id | mypage/actions#update |
+| アクションを削除 | DELETE | /mypage/actions/:id | mypage/actions#destroy |
+| 通知の一覧を表示 | GET | /mypage/notifications | mypage/notifications#index |
+| 通知の詳細を表示 | GET | /mypage/notifications/:id | mypage/notifications#show |
+| 通知を既読にする | GET | /mypage/notifications/:id/read| mypage/notifications#read |
+| （管理画面）ユーザー一覧を表示 | GET | /admin/users | admin/users#index |
+| （管理画面）ユーザー情報の詳細を表示 | GET | /admin/users/:id | admin/users#show |
+| （管理画面）ユーザー情報の編集ページを表示 | GET | /admin/users/:id/edit | admin/users#edit |
+| （管理画面）ユーザー情報を更新 | PUT/PATCH | /admin/users/:id | admin/users#update |
+| （管理画面）ユーザー情報を削除 | DELETE | /admin/users/:id | admin/users#destroy |
+| （管理画面）くじ一覧を表示 | GET | /admin/lots | admin/lots#index |
+| （管理画面）くじ詳細を表示 | GET | /admin/lots/:id | admin/lots#show |
+| （管理画面）くじを削除 | DELETE | /admin/lots/:id | admin/lots#destroy |
+| （管理画面）アクション一覧を表示 | GET | /admin/actions | admin/actions#index |
+| （管理画面）アクション詳細を表示 | GET | /admin/actions/:id | admin/actions#show |
+| （管理画面）アクションの編集ページを表示 | GET | /admin/actions/:id/edit | admin/actions#edit |
+| （管理画面）アクションを更新 | PUT/PATCH | /admin/actions/:id | admin/actions#update |
+| （管理画面）アクションを削除 | DELETE | /admin/actions/:id | admin/actions#destroy |
+
+### 決めていないこと・ご相談したいこと
+- 寄り道スポットの情報の管理について
+  - lotsのカラム`neaby_location_infos`に持たせるのか、従属するモデルを作成して情報を保存するか。
+
+### その他メモ
+- `lot`が作成されたときに、行先でのアクションを保存する`lot_action`をコールバックで作成する。
+- `user`の削除については、通常の削除にしようと思います（論理削除ではなく）
+  - `user`と`action`の関係は`dependent: :destroy`の予定ですが、actionの候補が消えても影響は軽微のため。
