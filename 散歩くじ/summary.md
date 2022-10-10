@@ -45,6 +45,13 @@
 - アクションが作成・提案されたとき、管理ユーザーに承認依頼の通知をする。
 - アクションが承認されたとき、作成したユーザーに承認完了の通知をする。
 
+#### リリース後などに追加したい機能
+- Twitterを使ったログイン
+- くじを作成し、結果（詳細画面）が表示されるまでに待ち時間を設けると、（僅かですが）結果を待つワクワク感を期待できるのでは。
+  - ベストはガラポンのアニメーションだが、ちょっと難しそう。
+  - JSを使った簡単なローディングページをはさみ、３秒程度時間を作ってもう良いかなと思いました。
+  - ただ、本番環境にどれだけ課金するか未定ですが、そもそもの読み込み時間が長いと逆効果になりそう。
+
 ### 使いそうなAPI
 #### 出発地の取得と表示
 - Google Maps Javascript API
@@ -129,18 +136,18 @@ notification {
 ### エンドポイントとコントローラー
 | やりたいこと | HTTPメソッド | エンドポイント | コントローラ#アクション | 
 |:-----------|:------------:|:------------:|:------------:|
-| ログイン画面を表示 | GET | /login | user_sessions#new |
-| ログイン | POST | /login | user_sessions#create |
-| ログアウト | DELETE | /logout | user_sessions#destroy |
+| ログイン画面を表示 | GET | /login | users/sessions#new |
+| ログイン | POST | /login | users/sessions#create |
+| ログアウト | DELETE | /logout | users/sessions#destroy |
 | くじ作成画面を表示 | GET | /lots/new | lots#new |
 | くじを作成 | POST | /lots | lots#create |
 | くじの詳細を表示 | GET | /lots/:id | lots#show |
-| ユーザー登録画面を表示 | GET | /users/new |	users#new |
-| ユーザー登録 | POST | /users | users#create |
-| ユーザー情報の削除 | DELETE | /users/:id | users#destroy |
+| ユーザー登録画面を表示 | GET | /signup |	users/registrations#new |
+| ユーザー登録 | POST | /signup | users/registrations#create |
+| ユーザー情報の削除 | DELETE | /users/:id | users/registrations#destroy |
 | アクション作成画面を表示 | GET | /actions/new | actions#new |
 | アクションを作成 | POST | /actions | actions#create |
-| マイページを表示 | GET | /mypage | /mypage/account#show |
+| マイページを表示 | GET | /mypage/account | /mypage/account#show |
 | マイページの編集画面を表示 | GET | /mypage/account/edit | mypage/account#edit |
 | マイページを更新 | PUT/PATCH | /mypage/account | mypage/account#update |
 | アクションの詳細を表示 | GET | /mypage/actions/:id | mypage/actions#show |
@@ -163,6 +170,10 @@ notification {
 | （管理画面）アクションの編集ページを表示 | GET | /admin/actions/:id/edit | admin/actions#edit |
 | （管理画面）アクションを更新 | PUT/PATCH | /admin/actions/:id | admin/actions#update |
 | （管理画面）アクションを削除 | DELETE | /admin/actions/:id | admin/actions#destroy |
+| 使い方 | GET | /about | static_pages#about |
+| さんぽのコツ・ヒントを紹介 | GET | /tips_to_enjoy | static_pages#tips |
+| 利用規約 | GET | /rules | static_pages#rules |
+| プライバシーポリシー | GET | /privacy | static_pages#privacy |
 
 ### 決めていないこと・ご相談したいこと
 - 寄り道スポットの情報の管理について
@@ -171,4 +182,4 @@ notification {
 ### その他メモ
 - `lot`が作成されたときに、行先でのアクションを保存する`lot_action`をコールバックで作成する。
 - `user`の削除については、通常の削除にしようと思います（論理削除ではなく）
-  - `user`と`action`の関係は`dependent: :destroy`の予定ですが、actionの候補が消えても影響は軽微のため。
+  - `user`と`action`の関係は`dependent: :destroy`の予定ですが、actionの候補が消えても影響は軽微と思われるため。
