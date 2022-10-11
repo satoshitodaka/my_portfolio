@@ -84,13 +84,13 @@ https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3
 ```mermaid
 erDiagram
 
-action ||--o{ action_destination_type_mapping: ""
+action ||--|| action_destination_type: ""
 action ||--o{ lot_action: ""
 action ||--o{ notification: ""
-destination_type ||--o{ action_destination_type_mapping: ""
-destination_type ||--o{ lot_destination_type_mapping: ""
+destination_type ||--o{ action_destination_type: ""
+destination_type ||--o{ lot_destination_type: ""
 lot ||--|| lot_action: ""
-lot ||--o{ lot_destination_type_mapping: ""
+lot ||--|| lot_destination_type: ""
 user ||--o{ action: ""
 user ||--o{ lot: ""
 user ||--o{ notification: ""
@@ -137,20 +137,20 @@ lot_action {
 }
 
 destination_type {
-  key string
+  key integer
   name string
   created_at datatime
   updated_at datatime
 }
 
-lot_destination_type_mapping {
+lot_destination_type {
   lot_id integer
   destination_type_id integer
   created_at datatime
   updated_at datatime
 }
 
-action_destination_type_mapping {
+action_destination_type {
   action_id integer
   destination_type_id integer
   created_at datatime
