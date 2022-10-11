@@ -19,13 +19,17 @@
   - [日本全国 47都道府県のルーレット](https://hajityoro.com/roulette)
   - [旅行先ランダムメーカー](https://kononedan.com/ryokoRandom/)
   - [おひとり様向け。温泉旅行行き先ルーレット](https://shindanmaker.com/1091866)
+- Androidアプリの[shiorin ～感動の旅をあなたにお届け～](https://play.google.com/store/apps/details?id=com.joron.waffle.itineraryapp)がイメージに近いかと思う。
+  - こちらは、都道府県ごとに行先のタイプを（日本の百名選など）選ぶことができ、さんぽくじとは違うアプローチだが素晴らしいと思った。
+  - 「徒歩に特化」と「任意のエリアを細かく指定できる」という点で差別化していきたいと思う。
 
 ## 機能の概要（箇条書き）
 ### 方向性
 - アプリのコンテンツがルーレット系であるため、アプリを診断系ツールと位置づけて、アプリ内での履歴閲覧や他ユーザーとの共有機能は最小限（または無し）で良いのではないかと思っています。
 ### 未ログインでできること
 - 行先のタイプを選択し、出発地を入力・送信すると、以下のくじが作成される。
-  - 行先（キーワードに応じた近場のスポット）  
+  - 行先
+    - GoogleのPlaceAPIを使い、指定したエリア内(例えば半径3km以内など)でキーワードに合致するスポットをランダムで提示 
   - アクション（行先でチャレンジすること）
     - 予め用意したアクションからランダムで選択されるようにする。自撮りする、おすすめグルメを食べる、など。 
   - 作成したくじはTwitterなどSNSでシェアできる。
@@ -51,6 +55,8 @@
   - ベストはガラポンのアニメーションだが、ちょっと難しそう。
   - JSを使った簡単なローディングページをはさみ、３秒程度時間を作ってもう良いかなと思いました。
   - ただ、本番環境にどれだけ課金するか未定ですが、そもそもの読み込み時間が長いと逆効果になりそう。
+- くじの作成画面にて、現在地の取得もできたら良い。
+- 検索範囲をユーザーが指定できると良いかもしれない。
 
 ### 使いそうなAPI
 #### 出発地の取得と表示
@@ -78,15 +84,19 @@ https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3
 ```mermaid
 erDiagram
 
-user ||--o{ lot: ""
-user ||--o{ action: ""
-user ||--o{ notification: ""
-lot ||--|| lot_action: ""
+action ||--o{ action_destination_type_mapping: ""
 action ||--o{ lot_action: ""
 action ||--o{ notification: ""
+destination_type ||--o{ action_destination_type_mapping: ""
+destination_type ||--o{ lot_destination_type_mapping: ""
+lot ||--|| lot_action: ""
+lot ||--o{ lot_destination_type_mapping: ""
+user ||--o{ action: ""
+user ||--o{ lot: ""
+user ||--o{ notification: ""
 
 user {
-    username string
+    name string
     email string
     encrypted_password string
     admin boolean
@@ -95,23 +105,24 @@ user {
 }
 
 lot {
+    user_id integer
     start_point_name string
     start_point_address string
     start_point_latitude float
     start_point_longitude float
-    distination_type string
-    distination_name string
-    distination_address string
-    distination_latitude float
-    distination_longitude float
-    neaby_location_infos string
+    destination_type_id integer
+    destination_name string
+    destination_address string
+    destination_latitude float
+    destination_longitude float
+    neaby_locations json
     created_at datetime
     updated_at datetime
 }
 
 action {
-  action_type string
-  user_id bigint
+  destination_type_id integer
+  user_id integer
   content text
   released boolean
   created_at datetime
@@ -119,15 +130,36 @@ action {
 }
 
 lot_action {
-  lot_id bigint
-  action_id bigint
+  lot_id integer
+  action_id integer
   created_at datetime
   updated_at datetime
 }
 
+destination_type {
+  key string
+  name string
+  created_at datatime
+  updated_at datatime
+}
+
+lot_destination_type_mapping {
+  lot_id integer
+  destination_type_id integer
+  created_at datatime
+  updated_at datatime
+}
+
+action_destination_type_mapping {
+  action_id integer
+  destination_type_id integer
+  created_at datatime
+  updated_at datatime
+}
+
 notification {
-  notification_type string
-  user_id bigint
+  notification_type integer
+  user_id integer
   read boolean
   created_at datetime
   updated_at datetime
@@ -135,21 +167,21 @@ notification {
 ```
 ### エンドポイントとコントローラー
 | やりたいこと | HTTPメソッド | エンドポイント | コントローラ#アクション | 
-|:-----------|:------------:|:------------:|:------------:|
-| ログイン画面を表示 | GET | /login | users/sessions#new |
-| ログイン | POST | /login | users/sessions#create |
-| ログアウト | DELETE | /logout | users/sessions#destroy |
+|:-----------|:------------:|:------------|:------------|
+| ログイン画面を表示 | GET | /login | user_sessions#new |
+| ログイン | POST | /login | user_sessions#create |
+| ログアウト | DELETE | /logout | user_sessions#destroy |
 | くじ作成画面を表示 | GET | /lots/new | lots#new |
 | くじを作成 | POST | /lots | lots#create |
 | くじの詳細を表示 | GET | /lots/:id | lots#show |
-| ユーザー登録画面を表示 | GET | /signup |	users/registrations#new |
-| ユーザー登録 | POST | /signup | users/registrations#create |
-| ユーザー情報の削除 | DELETE | /users/:id | users/registrations#destroy |
+| ユーザー登録画面を表示 | GET | /signup |	userss#new |
+| ユーザー登録 | POST | /signup | users#create |
+| ユーザー情報の削除 | DELETE | /users/:id | users#destroy |
 | アクション作成画面を表示 | GET | /actions/new | actions#new |
 | アクションを作成 | POST | /actions | actions#create |
 | マイページを表示 | GET | /mypage/account | /mypage/account#show |
 | マイページの編集画面を表示 | GET | /mypage/account/edit | mypage/account#edit |
-| マイページを更新 | PUT/PATCH | /mypage/account | mypage/account#update |
+| マイページを更新 | PATCH/PUT | /mypage/account | mypage/account#update |
 | アクションの詳細を表示 | GET | /mypage/actions/:id | mypage/actions#show |
 | アクションの編集画面を表示 | GET | /mypage/actions/:id | mypage/actions#edit |
 | アクションを更新 | GET | /mypage/actions/:id | mypage/actions#update |
@@ -160,7 +192,7 @@ notification {
 | （管理画面）ユーザー一覧を表示 | GET | /admin/users | admin/users#index |
 | （管理画面）ユーザー情報の詳細を表示 | GET | /admin/users/:id | admin/users#show |
 | （管理画面）ユーザー情報の編集ページを表示 | GET | /admin/users/:id/edit | admin/users#edit |
-| （管理画面）ユーザー情報を更新 | PUT/PATCH | /admin/users/:id | admin/users#update |
+| （管理画面）ユーザー情報を更新 | PATCH/PUT | /admin/users/:id | admin/users#update |
 | （管理画面）ユーザー情報を削除 | DELETE | /admin/users/:id | admin/users#destroy |
 | （管理画面）くじ一覧を表示 | GET | /admin/lots | admin/lots#index |
 | （管理画面）くじ詳細を表示 | GET | /admin/lots/:id | admin/lots#show |
@@ -168,7 +200,7 @@ notification {
 | （管理画面）アクション一覧を表示 | GET | /admin/actions | admin/actions#index |
 | （管理画面）アクション詳細を表示 | GET | /admin/actions/:id | admin/actions#show |
 | （管理画面）アクションの編集ページを表示 | GET | /admin/actions/:id/edit | admin/actions#edit |
-| （管理画面）アクションを更新 | PUT/PATCH | /admin/actions/:id | admin/actions#update |
+| （管理画面）アクションを更新 | PATCH/PUT | /admin/actions/:id | admin/actions#update |
 | （管理画面）アクションを削除 | DELETE | /admin/actions/:id | admin/actions#destroy |
 | 使い方 | GET | /about | static_pages#about |
 | さんぽのコツ・ヒントを紹介 | GET | /tips_to_enjoy | static_pages#tips |
@@ -183,3 +215,44 @@ notification {
 - `lot`が作成されたときに、行先でのアクションを保存する`lot_action`をコールバックで作成する。
 - `user`の削除については、通常の削除にしようと思います（論理削除ではなく）
   - `user`と`action`の関係は`dependent: :destroy`の予定ですが、actionの候補が消えても影響は軽微と思われるため。
+
+### ポートフォリオ案レビュー会で頂いた意見について整理
+- スパルタコースの皆さんに色々とご意見をいただいた。
+- レビュー会の[メモ](https://hackmd.io/KENAQAtOSTub95NXzirMmg?view)はこちら
+
+### アイデア全般について
+#### 目的地を指定するのもアイデアとして良いのでは
+- 目的地をユーザーに入力させて、その目的地近辺の寄り道スポットを提示するサービスも良いのでは。
+- 出発地を自宅近辺に設定する場合、プライバシーの観点からあまりシェアしたくなさそう（特に女性ユーザー）
+  - 利用範囲を近所に絞らず、どこでも使えることをアピールするか。
+  - シェアする場合の注意喚起は必要そう（自宅周辺で使うと生活圏内がわかってしまう）
+  - もしくは、検索する範囲を指定してもらうか。
+- ユーザーがアクションにチャレンジする動機はどうしても弱くなりそう。
+  - 一応「くじ」を謳うサービスなので、アクションの難易度を大吉〜大凶で設定すると面白いかもしれない。(初期リリース後に検討か)
+  - アクションの数を増やす。
+  - ジャンルを絞る
+  - 複数名での散歩を念頭に置いたアクションを作る、など(人数の情報をもたせるなら、カラムを増やして管理する必要ありそう)
+- ぼんやりと、アプリ名の「さんぽ」は平仮名のほうが親しみやすいかなと思いましたが、アプリ内の表示に統一性がなくなるので、漢字の散歩に統一しても良いのかなと思います。
+
+#### 実装についてのご意見の整理
+##### User・認証関連
+- 未ログインでくじを作成する場合は、Userの匿名認証は使わずにuser_idをnullで作成しても良いのでは。
+- Twitterログインはハードル高くないので、ぜひともチャレンジしてみては。
+- Adminユーザーはtodakaしか使わないはずなので、Basic認証やgemを使って簡単に実装する。
+##### Lot関連
+- 寄り道スポットについて、外部APIから取得したJSON形式のデータはjson型でそのまま保存するのが良いかも。あとから情報を取得する際に便利。
+- 行先のタイプはGoogleのPlaceAPIの場所のタイプに依存するが、日本語の名前などを表記する場合は、別にテーブルをもたせたほうが良さそう。
+  - 行先のタイプは、原則はどこにでもあるものを提示する。
+  - 行先を多く表示する場合、グルーピングが必要そう。
+- SNSシェアについて、LINENとInstagramも実装したい。
+- いいね機能があっても良いかも。
+  - ツールとして簡素な機能に絞るなら見送り、SNS上のみやすさ・シェアのしやすさに注力するほうが良いかもしれない。
+- くじの作成画面にて、緯度経度の欄は不要かも。
+##### Action関連
+- アクションについて、公開状況のフラグとは別に、承認状況のフラグを設ける必要がある。また、差し戻す場合はコメントもつけることができると更に良し。
+
+##### その他全般的なこと
+- 型を保存するカラム`_type`はenumで保存しても良いかもしれない。
+- 最低限の機能で、とりあえず動くものをリリースしたほうが良さそう。
+  - Action周りの実装の優先度を下げると、通知や管理画面の実装が不要となるため、開発期間は短くなりそう。
+- 自分でデザインを考えるとダサくなりがちなので、有料テーマや諸々のツールを活用すると良い。
