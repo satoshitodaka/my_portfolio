@@ -81,19 +81,23 @@
 https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3%81%8F%E3%81%98%EF%BC%88%E4%BB%AE%E7%A7%B0%EF%BC%89?node-id=0%3A1
 
 ### ER図の再作成（Mermaid記法）
+#### レビューメモ
+- Actionは複数のLocation_typeを持つため、中間テーブルを設ける
+  - 例えば、写真を撮るというActionは様々なLocation_typeの場所でできるため。
+- Lotに設定するLocation_type（destination_type)は一つだけなので、中間テーブルは設けずにbelongs_toで紐付けるだけとする。
 ```mermaid
 erDiagram
 
-action ||--|| action_destination_type: ""
-action ||--o{ lot_action: ""
-action ||--o{ notification: ""
-destination_type ||--o{ action_destination_type: ""
-destination_type ||--o{ lot_destination_type: ""
-lot ||--|| lot_action: ""
-lot ||--|| lot_destination_type: ""
+
 user ||--o{ action: ""
 user ||--o{ lot: ""
 user ||--o{ notification: ""
+action ||--|{ action_location_type: ""
+action ||--o{ lot_action: ""
+action ||--|{ notification: ""
+location_type ||--o{ action_location_type: ""
+lot ||--|| location_type: ""
+lot ||--|| lot_action: ""
 
 user {
     name string
@@ -121,7 +125,7 @@ lot {
 }
 
 action {
-  destination_type_id integer
+  location_type_id integer
   user_id integer
   content text
   released boolean
@@ -136,23 +140,16 @@ lot_action {
   updated_at datetime
 }
 
-destination_type {
+location_type {
   key integer
   name string
   created_at datatime
   updated_at datatime
 }
 
-lot_destination_type {
-  lot_id integer
-  destination_type_id integer
-  created_at datatime
-  updated_at datatime
-}
-
-action_destination_type {
+action_location_type {
   action_id integer
-  destination_type_id integer
+  location_type_id integer
   created_at datatime
   updated_at datatime
 }
