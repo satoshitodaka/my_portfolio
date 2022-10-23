@@ -82,22 +82,22 @@ https://www.figma.com/file/diej53AtUK8CtG908Lva8l/%E3%81%95%E3%82%93%E3%81%BD%E3
 
 ### ER図の再作成（Mermaid記法）
 #### レビューメモ
-- Actionは複数のLocation_typeを持つため、中間テーブルを設ける
-  - 例えば、写真を撮るというActionは様々なLocation_typeの場所でできるため。
+- activityは複数のLocation_typeを持つため、中間テーブルを設ける
+  - 例えば、写真を撮るというactivityは様々なLocation_typeの場所でできるため。
 - Lotに設定するLocation_type（destination_type)は一つだけなので、中間テーブルは設けずにbelongs_toで紐付けるだけとする。
 ```mermaid
 erDiagram
 
 
-user ||--o{ action: ""
+user ||--o{ activity: ""
 user ||--o{ lot: ""
 user ||--o{ notification: ""
-action ||--|{ action_location_type: ""
-action ||--o{ lot_action: ""
-action ||--|{ notification: ""
-location_type ||--o{ action_location_type: ""
+activity ||--|{ activity_location_type: ""
+activity ||--o{ lot_activity: ""
+activity ||--|{ notification: ""
+location_type ||--o{ activity_location_type: ""
 lot ||--|| location_type: ""
-lot ||--|| lot_action: ""
+lot ||--|| lot_activity: ""
 
 user {
     name string
@@ -124,7 +124,7 @@ lot {
     updated_at datetime
 }
 
-action {
+activity {
   location_type_id integer
   user_id integer
   content text
@@ -133,9 +133,9 @@ action {
   updated_at datetime
 }
 
-lot_action {
+lot_activity {
   lot_id integer
-  action_id integer
+  activity_id integer
   created_at datetime
   updated_at datetime
 }
@@ -147,8 +147,8 @@ location_type {
   updated_at datatime
 }
 
-action_location_type {
-  action_id integer
+activity_location_type {
+  activity_id integer
   location_type_id integer
   created_at datatime
   updated_at datatime
@@ -174,15 +174,15 @@ notification {
 | ユーザー登録画面を表示 | GET | /signup |	userss#new |
 | ユーザー登録 | POST | /signup | users#create |
 | ユーザー情報の削除 | DELETE | /users/:id | users#destroy |
-| アクション作成画面を表示 | GET | /actions/new | actions#new |
-| アクションを作成 | POST | /actions | actions#create |
+| アクション作成画面を表示 | GET | /activities/new | activities#new |
+| アクションを作成 | POST | /activities | activities#create |
 | マイページを表示 | GET | /mypage/account | /mypage/account#show |
 | マイページの編集画面を表示 | GET | /mypage/account/edit | mypage/account#edit |
 | マイページを更新 | PATCH/PUT | /mypage/account | mypage/account#update |
-| アクションの詳細を表示 | GET | /mypage/actions/:id | mypage/actions#show |
-| アクションの編集画面を表示 | GET | /mypage/actions/:id | mypage/actions#edit |
-| アクションを更新 | GET | /mypage/actions/:id | mypage/actions#update |
-| アクションを削除 | DELETE | /mypage/actions/:id | mypage/actions#destroy |
+| アクションの詳細を表示 | GET | /mypage/activities/:id | mypage/activities#show |
+| アクションの編集画面を表示 | GET | /mypage/activities/:id | mypage/activities#edit |
+| アクションを更新 | GET | /mypage/activities/:id | mypage/activities#update |
+| アクションを削除 | DELETE | /mypage/activities/:id | mypage/activities#destroy |
 | 通知の一覧を表示 | GET | /mypage/notifications | mypage/notifications#index |
 | 通知の詳細を表示 | GET | /mypage/notifications/:id | mypage/notifications#show |
 | 通知を既読にする | GET | /mypage/notifications/:id/read| mypage/notifications#read |
@@ -194,11 +194,11 @@ notification {
 | （管理画面）くじ一覧を表示 | GET | /admin/lots | admin/lots#index |
 | （管理画面）くじ詳細を表示 | GET | /admin/lots/:id | admin/lots#show |
 | （管理画面）くじを削除 | DELETE | /admin/lots/:id | admin/lots#destroy |
-| （管理画面）アクション一覧を表示 | GET | /admin/actions | admin/actions#index |
-| （管理画面）アクション詳細を表示 | GET | /admin/actions/:id | admin/actions#show |
-| （管理画面）アクションの編集ページを表示 | GET | /admin/actions/:id/edit | admin/actions#edit |
-| （管理画面）アクションを更新 | PATCH/PUT | /admin/actions/:id | admin/actions#update |
-| （管理画面）アクションを削除 | DELETE | /admin/actions/:id | admin/actions#destroy |
+| （管理画面）アクション一覧を表示 | GET | /admin/activities | admin/activities#index |
+| （管理画面）アクション詳細を表示 | GET | /admin/activities/:id | admin/activities#show |
+| （管理画面）アクションの編集ページを表示 | GET | /admin/activities/:id/edit | admin/activities#edit |
+| （管理画面）アクションを更新 | PATCH/PUT | /admin/activities/:id | admin/activities#update |
+| （管理画面）アクションを削除 | DELETE | /admin/activities/:id | admin/activities#destroy |
 | 使い方 | GET | /about | static_pages#about |
 | さんぽのコツ・ヒントを紹介 | GET | /tips_to_enjoy | static_pages#tips |
 | 利用規約 | GET | /rules | static_pages#rules |
@@ -209,9 +209,9 @@ notification {
   - lotsのカラム`neaby_location_infos`に持たせるのか、従属するモデルを作成して情報を保存するか。
 
 ### その他メモ
-- `lot`が作成されたときに、行先でのアクションを保存する`lot_action`をコールバックで作成する。
+- `lot`が作成されたときに、行先でのアクションを保存する`lot_activity`をコールバックで作成する。
 - `user`の削除については、通常の削除にしようと思います（論理削除ではなく）
-  - `user`と`action`の関係は`dependent: :destroy`の予定ですが、actionの候補が消えても影響は軽微と思われるため。
+  - `user`と`activity`の関係は`dependent: :destroy`の予定ですが、activityの候補が消えても影響は軽微と思われるため。
 
 ### ポートフォリオ案レビュー会で頂いた意見について整理
 - スパルタコースの皆さんに色々とご意見をいただいた。
@@ -245,11 +245,11 @@ notification {
 - いいね機能があっても良いかも。
   - ツールとして簡素な機能に絞るなら見送り、SNS上のみやすさ・シェアのしやすさに注力するほうが良いかもしれない。
 - くじの作成画面にて、緯度経度の欄は不要かも。
-##### Action関連
+##### activity関連
 - アクションについて、公開状況のフラグとは別に、承認状況のフラグを設ける必要がある。また、差し戻す場合はコメントもつけることができると更に良し。
 
 ##### その他全般的なこと
 - 型を保存するカラム`_type`はenumで保存しても良いかもしれない。
 - 最低限の機能で、とりあえず動くものをリリースしたほうが良さそう。
-  - Action周りの実装の優先度を下げると、通知や管理画面の実装が不要となるため、開発期間は短くなりそう。
+  - activity周りの実装の優先度を下げると、通知や管理画面の実装が不要となるため、開発期間は短くなりそう。
 - 自分でデザインを考えるとダサくなりがちなので、有料テーマや諸々のツールを活用すると良い。
