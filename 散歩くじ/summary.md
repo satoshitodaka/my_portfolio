@@ -91,13 +91,15 @@ erDiagram
 
 user ||--o{ activity: ""
 user ||--o{ lot: ""
-user ||--o{ notification: ""
+user ||--o{ user_notification: ""
+notification ||--o{ user_notification: ""
 activity ||--|{ activity_location_type: ""
 activity ||--o{ lot_activity: ""
 activity ||--|{ notification: ""
 location_type ||--o{ activity_location_type: ""
 lot ||--|| location_type: ""
 lot ||--|| lot_activity: ""
+lot ||--|{ other_place: ""
 
 user {
     name string
@@ -122,6 +124,13 @@ lot {
     neaby_locations json
     created_at datetime
     updated_at datetime
+}
+
+other_place {
+  lot_id integer
+  place_number integer
+  created_at datetime
+  updated_at datetime
 }
 
 activity {
@@ -155,8 +164,15 @@ activity_location_type {
 }
 
 notification {
-  notification_type integer
+  title string
+  url string
+  created_at datetime
+  updated_at datetime
+}
+
+user_notification {
   user_id integer
+  notification_id integer
   read boolean
   created_at datetime
   updated_at datetime
